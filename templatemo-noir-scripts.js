@@ -8,6 +8,11 @@ https://templatemo.com/tm-599-noir-fashion
 
 */
 
+import { createClient } from '@supabase/supabase-js'
+const SUPABASE_URL = import.meta?.env?.VITE_SUPABASE_URL
+const SUPABASE_ANON_KEY = import.meta?.env?.VITE_SUPABASE_ANON_KEY
+const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
+
  // Hero Carousel
         const slides = document.querySelectorAll('.carousel-slide');
         const indicators = document.querySelectorAll('.indicator');
@@ -124,20 +129,14 @@ https://templatemo.com/tm-599-noir-fashion
         window.addEventListener('resize', updateActiveNav); // Update on resize
         updateActiveNav(); // Call on load
 
-        // Category filter
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const collectionCards = document.querySelectorAll('.collection-card');
-
         tabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const category = btn.dataset.category;
-                
-                // Update active button
                 tabButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                // Filter cards
-                collectionCards.forEach(card => {
+                const cards = document.querySelectorAll('.collection-card');
+                cards.forEach(card => {
                     if (category === 'all' || card.dataset.category === category) {
                         card.style.display = 'block';
                         setTimeout(() => {
@@ -191,6 +190,66 @@ https://templatemo.com/tm-599-noir-fashion
                 parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
             }
         });
+
+        async function loadProducts() {
+            const grid = document.getElementById('collectionsGrid');
+            if (!grid) return;
+            try {
+                const resp = await fetch('/api/products?limit=24')
+                const json = await resp.json()
+                if (json?.success && Array.isArray(json.items)) {
+                    const items = json.items.map(p => {
+                        const imgUrl = p.imagem || 'images/urban-edge.avif';
+                        const price = Number(p.preco).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                        const badge = p.categoria === 'limited' ? 'Limited' : 'New Arrival';
+                        const subtitle = p.categoria === 'women' ? "Women's Collection" : p.categoria === 'men' ? "Men's Collection" : p.categoria === 'accessories' ? 'Accessories' : 'Exclusive Drop';
+                        return `
+                        <div class="collection-card" data-category="${p.categoria}">
+                            <div class="collection-thumbnail">
+                                <img src="${imgUrl}" alt="${p.nome}">
+                            </div>
+                            <div class="card-content">
+                                <span class="card-badge">${badge}</span>
+                                <h3 class="card-title">${p.nome}</h3>
+                                <p class="card-subtitle">${subtitle}</p>
+                                <p class="card-price">${price}</p>
+                            </div>
+                        </div>`
+                    }).join('');
+                    if (items) grid.innerHTML = items;
+                    return;
+                }
+            } catch (e) {}
+            if (!supabase) return;
+            const { data, error } = await supabase
+                .from('produtos')
+                .select('id_produto,nome,preco,categoria,produto_imagens(url_imagem,principal)')
+                .limit(24);
+            if (error) return;
+            const items = (data || []).map(p => {
+                const imgs = Array.isArray(p.produto_imagens) ? p.produto_imagens : [];
+                const principal = imgs.find(i => i.principal) || imgs[0];
+                const imgUrl = principal?.url_imagem || 'images/urban-edge.avif';
+                const price = Number(p.preco).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                const badge = p.categoria === 'limited' ? 'Limited' : 'New Arrival';
+                const subtitle = p.categoria === 'women' ? "Women's Collection" : p.categoria === 'men' ? "Men's Collection" : p.categoria === 'accessories' ? 'Accessories' : 'Exclusive Drop';
+                return `
+                <div class="collection-card" data-category="${p.categoria}">
+                    <div class="collection-thumbnail">
+                        <img src="${imgUrl}" alt="${p.nome}">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-badge">${badge}</span>
+                        <h3 class="card-title">${p.nome}</h3>
+                        <p class="card-subtitle">${subtitle}</p>
+                        <p class="card-price">${price}</p>
+                    </div>
+                </div>`
+            }).join('');
+            if (items) grid.innerHTML = items;
+        }
+
+        loadProducts();
 
         // Contact form handling
         const contactForm = document.getElementById('contactForm');
@@ -257,3 +316,110 @@ https://templatemo.com/tm-599-noir-fashion
         document.querySelectorAll('.featured-container, .contact-content').forEach(el => {
             observer.observe(el);
         });
+
+        const adminForm = document.getElementById('adminForm');
+        const adminList = document.getElementById('adminList');
+        let currentProductId = null;
+        async function adminLoad() {
+            if (!adminList) return;
+            try {
+                const resp = await fetch('/api/products?limit=100');
+                const json = await resp.json();
+                if (json?.success && Array.isArray(json.items)) {
+                    adminList.innerHTML = json.items.map(p => {
+                        const price = Number(p.preco).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                        const img = p.imagem || 'images/urban-edge.avif';
+                        return `
+                        <div class="collection-card" data-id="${p.id}">
+                            <div class="collection-thumbnail">
+                                <img src="${img}" alt="${p.nome}">
+                            </div>
+                            <div class="card-content">
+                                <span class="card-badge">${p.categoria}</span>
+                                <h3 class="card-title">${p.nome}</h3>
+                                <p class="card-price">${price}</p>
+                                <div class="cta-group">
+                                    <button class="cta-button outline" data-action="edit" data-id="${p.id}">Editar</button>
+                                    <button class="cta-button primary" data-action="delete" data-id="${p.id}">Excluir</button>
+                                </div>
+                            </div>
+                        </div>`
+                    }).join('');
+                }
+            } catch (e) {}
+        }
+        if (adminList) adminLoad();
+        if (adminForm) {
+            const nameEl = document.getElementById('adminName');
+            const catEl = document.getElementById('adminCategory');
+            const statusEl = document.getElementById('adminStatus');
+            const priceEl = document.getElementById('adminPrice');
+            const skuEl = document.getElementById('adminSKU');
+            const descEl = document.getElementById('adminDescription');
+            const saveBtn = document.getElementById('adminSaveBtn');
+            const newBtn = document.getElementById('adminNewBtn');
+            adminForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const body = {
+                    nome: nameEl.value,
+                    categoria: catEl.value,
+                    status: statusEl.value,
+                    preco: Number(priceEl.value),
+                    sku: skuEl.value,
+                    descricao: descEl.value || null,
+                };
+                try {
+                    if (currentProductId) {
+                        const r = await fetch(`/api/products/${currentProductId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                        await r.json();
+                    } else {
+                        const r = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                        await r.json();
+                    }
+                    adminForm.reset();
+                    currentProductId = null;
+                    saveBtn.textContent = 'Salvar';
+                    adminLoad();
+                    loadProducts();
+                } catch (e) {}
+            });
+            newBtn.addEventListener('click', () => {
+                currentProductId = null;
+                adminForm.reset();
+                saveBtn.textContent = 'Salvar';
+            });
+        }
+        if (adminList) {
+            adminList.addEventListener('click', async (e) => {
+                const t = e.target;
+                if (!t || !t.closest) return;
+                const btn = t.closest('button');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const id = btn.dataset.id;
+                if (action === 'edit') {
+                    try {
+                        const r = await fetch(`/api/products/${id}`);
+                        const j = await r.json();
+                        if (j?.success && j.item) {
+                            currentProductId = j.item.id_produto || id;
+                            document.getElementById('adminName').value = j.item.nome || '';
+                            document.getElementById('adminCategory').value = j.item.categoria || 'women';
+                            document.getElementById('adminStatus').value = j.item.status || 'ativo';
+                            document.getElementById('adminPrice').value = j.item.preco || '';
+                            document.getElementById('adminSKU').value = j.item.sku || '';
+                            document.getElementById('adminDescription').value = j.item.descricao || '';
+                            document.getElementById('adminSaveBtn').textContent = 'Atualizar';
+                        }
+                    } catch (e) {}
+                }
+                if (action === 'delete') {
+                    try {
+                        const r = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                        await r.json();
+                        adminLoad();
+                        loadProducts();
+                    } catch (e) {}
+                }
+            });
+        }

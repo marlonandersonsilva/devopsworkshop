@@ -31,6 +31,7 @@ https://templatemo.com/tm-599-noir-fashion
                 <li><a href="#collections" class="nav-link">Collections</a></li>
                 <li><a href="#featured" class="nav-link">Featured</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
+                <li><a href="#admin" class="nav-link">Admin</a></li>
                 <li><a href="#contact" class="nav-cta">Get In Touch</a></li>
             </ul>
             <div class="menu-toggle" id="menuToggle">
@@ -396,6 +397,63 @@ https://templatemo.com/tm-599-noir-fashion
         </div>
     </section>
 
+    <section class="admin" id="admin" style="padding:60px 40px;background:#0a0a0a;">
+        <div class="section-header">
+            <h2 class="section-title">Admin Produtos</h2>
+            <p class="section-subtitle">Gerenciar catálogo</p>
+        </div>
+        <div class="contact-content" style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+            <div class="admin-form-wrapper">
+                <form id="adminForm">
+                    <div class="form-group">
+                        <label for="adminName">Nome</label>
+                        <input type="text" id="adminName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="adminCategory">Categoria</label>
+                            <select id="adminCategory" required>
+                                <option value="women">Women</option>
+                                <option value="men">Men</option>
+                                <option value="accessories">Accessories</option>
+                                <option value="limited">Limited</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminStatus">Status</label>
+                            <select id="adminStatus" required>
+                                <option value="ativo">Ativo</option>
+                                <option value="inativo">Inativo</option>
+                                <option value="esgotado">Esgotado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="adminPrice">Preço</label>
+                            <input type="number" step="0.01" id="adminPrice" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminSKU">SKU</label>
+                            <input type="text" id="adminSKU" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminDescription">Descrição</label>
+                        <textarea id="adminDescription" rows="3"></textarea>
+                    </div>
+                    <div class="cta-group">
+                        <button type="submit" class="cta-button primary" id="adminSaveBtn">Salvar</button>
+                        <button type="button" class="cta-button outline" id="adminNewBtn">Novo</button>
+                    </div>
+                </form>
+            </div>
+            <div class="admin-list-wrapper">
+                <div id="adminList" class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;"></div>
+            </div>
+        </div>
+    </section>
+
     <footer>
         <div class="footer-content">
             <div class="footer-brand">
@@ -450,6 +508,6 @@ https://templatemo.com/tm-599-noir-fashion
         </div>
     </footer>
 
-    <script src="templatemo-noir-scripts.js"></script>
-</body>
+    <script type="module" src="templatemo-noir-scripts.js"></script>
+  </body>
 </html>
