@@ -14,11 +14,11 @@ jobs:
               with:
                 python-version: '3.11' 
                 
-            - name: Install Dependencies
-              working-directory: api
-              run: |
-                python -m pip install --upgrade pip 
-                pip install -r requirements.txt
+           # - name: Install Dependencies
+            #  working-directory: api
+            #  run: |
+          #      python -m pip install --upgrade pip 
+           #     pip install -r requirements.txt
             
             - name: Testes
               working-directory: 02-encontros-tech
