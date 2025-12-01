@@ -67,72 +67,30 @@ jobs:
           context: .
           push: true
           tags: marlonanderson/devopsworkshop:latest
+      
+  cd-local:
 
-  CD-homolog:
-        runs-on: ubuntu-latest
-        environment: homolog
-        needs: [CI]
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-
-            - name: Kubernetes Set Context
-              uses: azure/k8s-set-context@v4
-              with:
-                method: kubeconfig
-                kubeconfig: ${{ secrets.KUBECONFIG }}
-
-            - name: Create namespace if not exists
-              run: kubectl create namespace tech-homolog --dry-run=client -o yaml | kubectl apply -f -
-                
-            - name: Create secrets in homolog
-              run: |
-                kubectl create secret generic encontros-tech-secrets \
-                  --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-                  --namespace=tech-homolog \
-                  --dry-run=client -o yaml | kubectl apply -f -                
-
-            - name: Deploy to Kubernetes Cluster
-              uses: azure/k8s-deploy@v5
-              with:
-                namespace: tech-homolog
-                manifests: |
-                  02-encontros-tech/k8s/manifests.yaml
-                images: |
-                  fabricioveronez/bootcamp-encontros-tech:v${{ github.run_number }}
-                strategy: basic
-
-  CD-producao:
-        runs-on: ubuntu-latest
-        environment: producao
-        needs: [CD-homolog]
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-
-            - name: Kubernetes Set Context
-              uses: azure/k8s-set-context@v4
-              with:
-                method: kubeconfig
-                kubeconfig: ${{ secrets.KUBECONFIG }}
-
-            - name: Create namespace if not exists
-              run: kubectl create namespace tech-producao --dry-run=client -o yaml | kubectl apply -f -
-                
-            - name: Create secrets in producao
-              run: |
-                kubectl create secret generic encontros-tech-secrets \
-                  --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-                  --namespace=tech-producao \
-                  --dry-run=client -o yaml | kubectl apply -f -                
-
-            - name: Deploy to Kubernetes Cluster
-              uses: azure/k8s-deploy@v5
-              with:
-                namespace: tech-producao
-                manifests: |
-                  02-encontros-tech/k8s/manifests.yaml
-                images: |
-                  fabricioveronez/bootcamp-encontros-tech:v${{ github.run_number }}
-                strategy: basic
-         
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Kubernetes Set Context
+        uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.LOCAL_KUBECONFIG }}
+      - name: Create namespace if not exists
+        run: kubectl create namespace tech-local --dry-run=client -o yaml | kubectl apply -f -
+      - name: Deploy to local Kubernetes
+        uses: azure/k8s-deploy@v5
+        with:
+          namespace: tech-local
+          manifests: |
+            k8s/manifests.yaml
+          images: |
+            marlonanderson/devopsworkshop:latest
+          strategy: basic    
+      
+      
+          
