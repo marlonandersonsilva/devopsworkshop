@@ -67,36 +67,63 @@ jobs:
           context: .
           push: true
           tags: marlonanderson/devopsworkshop:latest
-    
-          
+
   cd-local:
     runs-on: ubuntu-latest
     needs: docker
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        
       - name: Setup kind cluster
         uses: helm/kind-action@v1.8.0
         with:
           cluster_name: devopsworkshop-local
           wait: 120s
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+            - role: control-plane
+              extraPortMappings:
+              - containerPort: 30080
+                hostPort: 8080
+                protocol: TCP
+                
       - name: Create namespace if not exists
         run: kubectl create namespace tech-local --dry-run=client -o yaml | kubectl apply -f -
+        
       - name: Apply manifests from repo
         run: kubectl apply -f k8s/manifests.yaml
-      - name: Debug pod status
-        run: |
-             kubectl get pods -n tech-local
-             kubectl describe deployment noir-fashion -n tech-local
-    
+        
       - name: Wait for rollout
         run: kubectl rollout status deployment/noir-fashion -n tech-local --timeout=5m
-  
+        
       - name: Debug on failure
         if: failure()
         run: |
-         kubectl get pods -n tech-local
-         kubectl describe pods -n tech-local
-         kubectl logs -n tech-local -l app=noir-fashion --tail=50
-      - name: Wait for rollout
-        run: kubectl rollout status deployment/noir-fashion -n tech-local --timeout=5m
+          echo "=== Pods Status ==="
+          kubectl get pods -n tech-local
+          echo "=== Pod Description ==="
+          kubectl describe pods -n tech-local
+          echo "=== Pod Logs ==="
+          kubectl logs -n tech-local -l app=noir-fashion --tail=100
+          
+      - name: Test application endpoint
+        run: |
+          echo "Waiting for service to be ready..."
+          sleep 10
+          echo "Testing application at localhost:8080..."
+          curl -f http://localhost:8080 || (echo "Application not responding" && exit 1)
+          echo "✅ Application is running successfully!"
+          
+      - name: Show access information
+        run: |
+          echo "=========================================="
+          echo "🚀 Application deployed successfully!"
+          echo "=========================================="
+          echo "Access URL: http://localhost:8080"
+          echo "Namespace: tech-local"
+          echo "Service: noir-fashion"
+          echo "=========================================="
+          kubectl get all -n tech-local
