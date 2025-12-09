@@ -74,7 +74,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        
       - name: Create kind config
         run: |
           cat <<EOF > kind-config.yaml
