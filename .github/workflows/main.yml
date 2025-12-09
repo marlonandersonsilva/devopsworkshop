@@ -101,7 +101,7 @@ jobs:
         run: kubectl apply -f k8s/manifests.yaml
         
       - name: Wait for rollout
-        run: kubectl rollout status deployment/noir-fashion -n tech-local --timeout=5m
+        run: kubectl rollout status deployment/noir-frontend -n tech-local --timeout=5m
         
       - name: Debug on failure
         if: failure()
@@ -111,7 +111,7 @@ jobs:
           echo "=== Pod Description ==="
           kubectl describe pods -n tech-local
           echo "=== Pod Logs ==="
-          kubectl logs -n tech-local -l app=noir-fashion --tail=100
+          kubectl logs -n tech-local -l app=noir-frontend --tail=100
           
       - name: Test application endpoint
         run: |
@@ -128,6 +128,6 @@ jobs:
           echo "=========================================="
           echo "Access URL: http://localhost:8080"
           echo "Namespace: tech-local"
-          echo "Service: noir-fashion"
+          echo "Service: noir-frontend"
           echo "=========================================="
           kubectl get all -n tech-local
