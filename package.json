@@ -3,11 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "client:dev": "vite",
-    "server:dev": "nodemon",
-    "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\""
-  },
+ "scripts": {
+  "client:dev": "vite",
+  "client:build": "vite build",
+  "server:dev": "nodemon",
+  "build": "npm run client:build",
+  "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\""
+},
   "dependencies": {
     "@supabase/supabase-js": "^2.83.0",
     "cors": "^2.8.5",

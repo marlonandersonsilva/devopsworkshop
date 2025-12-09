@@ -6,33 +6,34 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: noir-fashion
+  name: noir-frontend
   namespace: tech-local
   labels:
-    app: noir-fashion
+    app: noir-frontend
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: noir-fashion
+      app: noir-frontend
   template:
     metadata:
       labels:
-        app: noir-fashion
+        app: noir-frontend
     spec:
       containers:
-        - name: noir-fashion
-          image: marlonanderson/devopsworkshop:latest
-          imagePullPolicy: Always
+        - name: noir-frontend
+          # altere a imagem conforme você construiu: dockerhub or local
+          image: marlonanderson/noir-frontend:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
+              name: http
           readinessProbe:
             httpGet:
               path: /
               port: 80
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 5
-            timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
             httpGet:
@@ -40,26 +41,18 @@ spec:
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-      restartPolicy: Always
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: noir-fashion
+  name: noir-frontend
   namespace: tech-local
-  labels:
-    app: noir-fashion
 spec:
-  type: NodePort
+  type: NodePort     # fácil para testar local (pode trocar para LoadBalancer em cloud)
   selector:
-    app: noir-fashion
+    app: noir-frontend
   ports:
-    - name: http
+    - protocol: TCP
       port: 80
       targetPort: 80
       nodePort: 30080
