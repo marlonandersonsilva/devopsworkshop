@@ -1,17 +1,10 @@
-# Production stage - apenas serve os arquivos estáticos
-FROM nginx:1.28.0-alpine
+FROM nginx:1.28-alpine
 
-# Remove a configuração padrão do nginx
-RUN rm /etc/nginx/conf.d/default.conf
+# se nginx roda como usuário 'nginx' (uid 101) ou outro, ajuste
+RUN mkdir -p /run && chown -R 101:101 /run
 
-# Copie a configuração customizada para porta 8080
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# copiar confs etc.
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copie os arquivos estáticos já buildados do diretório dist/
-COPY dist/ /usr/share/nginx/html/
-
-# Exponha a porta 8080
-EXPOSE 8080
-
-# Inicie o nginx (como root, que é o padrão e necessário)
+# manter execução em foreground
 CMD ["nginx", "-g", "daemon off;"]
