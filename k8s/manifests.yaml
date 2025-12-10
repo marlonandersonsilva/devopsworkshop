@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: noir-frontend
-          image: marlonanderson/noir-frontend:latest
-          imagePullPolicy: IfNotPresent
+          image: marlonanderson/noir-frontend:v1.0.1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http
