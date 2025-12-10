@@ -25,18 +25,18 @@ spec:
           image: marlonanderson/noir-frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
           readinessProbe:
             httpGet:
-              path: /index.html
+              path: /
               port: http     # uses named port
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /index.html
+              path: /
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
