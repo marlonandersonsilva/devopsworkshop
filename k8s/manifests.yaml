@@ -1,4 +1,3 @@
-# k8s/manifests.yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -26,19 +25,19 @@ spec:
           image: marlonanderson/noir-frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: http     # uses named port
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: http
             initialDelaySeconds: 30
             periodSeconds: 10
 ---
@@ -53,6 +52,26 @@ spec:
     app: noir-frontend
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 8080
+      targetPort: 8080
       nodePort: 30081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: noir-frontend-ingress
+  namespace: tech-local
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: noir-frontend
+                port:
+                  number: 8080
