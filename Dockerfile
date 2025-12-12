@@ -1,12 +1,15 @@
-# Dockerfile definitivo
 FROM nginx:1.28-alpine
 
-# garantir /run gravável para o usuário nginx (UID 101 na imagem oficial)
-RUN mkdir -p /run && chown -R 101:101 /run
-
-# copiar configuração e conteúdo estático
+# se você tem config customizada, copie aqui
 COPY ./nginx.conf /etc/nginx/nginx.conf
-COPY ./conf.d/ /etc/nginx/conf.d/
 COPY ./dist /usr/share/nginx/html
 
+# cria /run e dá ownership ao usuário nginx (usuário 'nginx' existe na image oficial)
+RUN mkdir -p /run \
+    && touch /run/nginx.pid \
+    && chown -R nginx:nginx /run
+
+USER nginx
+
+# entrypoint padrão do nginx: mantém em foreground
 CMD ["nginx", "-g", "daemon off;"]
