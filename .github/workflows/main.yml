@@ -113,18 +113,52 @@ jobs:
           echo "=== Pod Logs ==="
           kubectl logs -n tech-local -l app=noir-frontend --tail=100
           
+      - name: Wait for pods to be ready
+        run: |
+          echo "Aguardando pods estarem prontos..."
+          kubectl wait --for=condition=ready pod -l app=noir-frontend -n tech-local --timeout=300s
+          echo "✅ Pods prontos!"
+          
       - name: Test application endpoint
         run: |
-          echo "Waiting for service to be ready..."
-          sleep 10
-          echo "Testing application at localhost:8080..."
-          curl -f http://localhost:8080 || (echo "Application not responding" && exit 1)
-          echo "✅ Application is running successfully!"
+          echo "Configurando port-forward..."
+          kubectl port-forward -n tech-local svc/noir-frontend 8080:8080 &
+          PF_PID=$!
+          
+          # Aguardar port-forward estar pronto
+          echo "Aguardando port-forward..."
+          sleep 5
+          
+          # Testar a aplicação principal
+          echo "Testando aplicação em localhost:8080..."
+          if curl -f http://localhost:8080 --max-time 10 --retry 3 --retry-delay 2; then
+              echo "✅ Aplicação está respondendo!"
+          else
+              echo "❌ Aplicação não está respondendo"
+              echo "=== Logs dos pods ==="
+              kubectl logs -l app=noir-frontend -n tech-local --tail=50
+              kill $PF_PID 2>/dev/null || true
+              exit 1
+          fi
+          
+          # Testar health check
+          echo "Testando endpoint de health..."
+          if curl -f http://localhost:8080/health --max-time 10; then
+              echo "✅ Health check está respondendo!"
+          else
+              echo "❌ Health check não está respondendo"
+              kill $PF_PID 2>/dev/null || true
+              exit 1
+          fi
+          
+          # Limpar port-forward
+          kill $PF_PID 2>/dev/null || true
+          echo "✅ Todos os testes passaram!"
           
       - name: Show access information
         run: |
           echo "=========================================="
-          echo "🚀 Application deployed successfully!"
+          echo "🚀 Aplicação implantada com sucesso!"
           echo "=========================================="
           echo "Access URL: http://localhost:8080"
           echo "Namespace: tech-local"
