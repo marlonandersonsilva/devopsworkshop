@@ -1,5 +1,6 @@
 FROM nginx:1.28-alpine
 
+
 # se você tem config customizada, copie aqui
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./dist /usr/share/nginx/html
