@@ -8,7 +8,8 @@
     "client:build": "vite build",
     "server:dev": "nodemon",
     "build": "npm run client:build",
-    "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\""
+    "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\"",
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.83.0",
